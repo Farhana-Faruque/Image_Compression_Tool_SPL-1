@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "image.h"
+#include "utils.h"
 
 #define MAX_TREE_NODES 511 // 256 leaf nodes + 255 internal nodes
 
@@ -196,13 +197,7 @@ int compressBMP3(const char* input_file, const char* output_file) {
 
     printf("\nOriginal size: %ld bytes\n", size);
 
-    FILE *check_size = fopen("compressed.bin", "rb");
-    fseek(check_size, 0, SEEK_END);
-    long compressed_size2 = ftell(check_size);
-    fclose(check_size);
-    
-    printf("Compressed size: %ld bytes\n", compressed_size2);
-    printf("Compression ratio: %.2f%%\n", (1.0 - ((float)compressed_size2 / size)) * 100); 
+    printCompressionStats(output_file, size);
 
     free(pD);
     free_tree(root);

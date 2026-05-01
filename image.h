@@ -48,7 +48,7 @@ typedef struct {
     int width, height, maxIntensity;
 } PGMHeader;
 
-int readLine(FILE* file, char* buffer, int maxLen) {
+static inline int readLine(FILE* file, char* buffer, int maxLen) {
     while (fgets(buffer, maxLen, file)) {
         if (buffer[0] != '#' && buffer[0] != '\n' && buffer[0] != '\0') {
             return 1; 

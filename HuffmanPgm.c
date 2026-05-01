@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "huffpgm.h"
+#include "utils.h"
 
 #define MAX_SIZE 256
-#define MAX_LINE 1024
 
 int compressHuffman(const char* inputFile, const char* outputFile) {
     FILE* input = fopen(inputFile, "rb");
@@ -15,66 +15,22 @@ int compressHuffman(const char* inputFile, const char* outputFile) {
     }
 
     PGMHeader pgm;
-    char line[MAX_LINE];
-    if (!readLine(input, line, MAX_LINE) || sscanf(line, "%2s", pgm.sign) != 1) {
-        printf("Failed to read magic number\n");
-        fclose(input);
-        fclose(output);
-        return 1;
-    }
-    if (!readLine(input, line, MAX_LINE) || sscanf(line, "%d %d", &pgm.width, &pgm.height) != 2) {
-        printf("Failed to read dimensions\n");
-        fclose(input);
-        fclose(output);
-        return 1;
-    }
-    if (!readLine(input, line, MAX_LINE) || sscanf(line, "%d", &pgm.maxIntensity) != 1) {
-        printf("Failed to read maxval\n");
-        fclose(input);
-        fclose(output);
-        return 1;
-    }
-    
-    if ((strcmp(pgm.sign, "P2") != 0 && strcmp(pgm.sign, "P5") != 0) || pgm.maxIntensity > 255) {
-        printf("Unsupported PGM format: %s, maxval: %d\n", pgm.sign, pgm.maxIntensity);
+    if (!readPGMHeader(input, &pgm)) {
         fclose(input);
         fclose(output);
         return 1;
     }
 
-    long tP = (long)pgm.width * pgm.height; // totalPixels
-    unsigned char* iD = (unsigned char*)malloc(tP); // imageData
+    long tP;
+    unsigned char* iD = readPGMPixels(input, &pgm, &tP);
     if (!iD) {
-        printf("Memory allocation failed\n");
         fclose(input);
         fclose(output);
         return 1;
     }
 
-    if (strcmp(pgm.sign, "P2") == 0) {
-        for (long i = 0; i < tP; i++) {
-            int pixel;
-            if (fscanf(input, "%d", &pixel) != 1) {
-                printf("Error reading P2 data at pixel %ld\n", i);
-                free(iD);
-                fclose(input);
-                fclose(output);
-                return 1;
-            }
-            iD[i] = (unsigned char)pixel;
-        }
-    } else {
-        if (fread(iD, 1, tP, input) != tP) {
-            printf("Error reading P5 data\n");
-            free(iD);
-            fclose(input);
-            fclose(output);
-            return 1;
-        }
-    }
     fseek(input, 0, SEEK_END);
     long size = ftell(input);
-    fseek(input, sizeof(pgm), SEEK_SET);
     fclose(input);
 
     unsigned int freq[MAX_SIZE] = {0};
@@ -163,16 +119,7 @@ int compressHuffman(const char* inputFile, const char* outputFile) {
     free(iD);
     freeHuffmanTree(root);
 
-    printf("Original size: %ld bytes\n", size);
-
-    FILE *check_size = fopen("compressed.bin", "rb");
-    fseek(check_size, 0, SEEK_END);
-    long compressed_size = ftell(check_size);
-    fclose(check_size);
-    
-    printf("Compressed size: %ld bytes\n", compressed_size);
-    printf("Compression ratio: %.2f%%\n", 
-           (1.0 - ((float)compressed_size / size)) * 100); 
+    printCompressionStats(outputFile, size);
 
     return 0;
 }

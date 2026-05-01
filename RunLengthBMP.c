@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "image.h"
+#include "utils.h"
 
 typedef struct {
     unsigned char count; 
@@ -77,13 +78,7 @@ int compressBMP(const char* inputFile, const char* outputFile) {
 
     printf("\nOriginal size: %ld bytes\n", size);
     
-    FILE *check_size = fopen("compressed.bin", "rb");
-    fseek(check_size, 0, SEEK_END);
-    long compressed_size = ftell(check_size);
-    fclose(check_size);
-    
-    printf("Compressed size: %ld bytes\n", compressed_size);
-    printf("Compression ratio: %.2f%%\n", (1.0 - ((float)compressed_size / size)) * 100); 
+    printCompressionStats(outputFile, size); 
 
     return 0;
 }
