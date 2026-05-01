@@ -57,5 +57,5 @@ This project demonstrates how **classic compression techniques** can be implemen
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Farhana-Faruque/SPL-1.git
-   cd SPL-1
+   git clone https://github.com/Farhana-Faruque/Image_Compression_Tool_SPL-1.git
+   cd Image_Compression_Tool_SPL-1
